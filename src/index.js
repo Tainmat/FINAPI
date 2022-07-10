@@ -1,4 +1,3 @@
-const { response } = require('express');
 const express = require('express');
 const { v4: uuidV4 } = require('uuid');
 const app = express();
@@ -52,9 +51,53 @@ app.post('/account', (req, res) => {
     return res.status(201).send();
 });
 
+app.put('/account', verifyAccountExists, (req, res) => {
+    const { name } = req.body;
+    const { customer } = req;
+
+    customer.name = name;
+
+    return res.status(201).send();
+});
+
+app.get('/account', verifyAccountExists, (req, res) => {
+    const { customer } = req;
+
+    return res.json(customer);
+});
+
+app.delete('/account', verifyAccountExists, (req, res) => {
+    const { customer } = req;
+
+    customers.splice(customer, 1);
+    return res.status(200).json(customers);
+});
+
+app.get('/account/balance', verifyAccountExists, (req, res) => {
+    const { customer } = req;
+    const balance = getBalance(customer.statement);
+
+    return res.json({ balance });
+});
+
 app.get('/statement', verifyAccountExists, (req, res) => {
     const { customer } = req;
     return res.json(customer.statement);
+});
+
+app.get('/statement/date', verifyAccountExists, (req, res) => {
+    const { customer } = req;
+    const { date } = req.query;
+
+    const dateFormat = new Date(date + ' 00:00');
+
+    const statement = customer.statement.filter(
+        statement =>
+            statement.createdAt.toDateString() ===
+            new Date(dateFormat).toDateString(),
+    );
+
+    return res.json(statement);
 });
 
 app.post('/deposit', verifyAccountExists, (req, res) => {
